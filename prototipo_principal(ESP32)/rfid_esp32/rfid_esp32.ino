@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include <SPI.h>
 #include <MFRC522.h> // Biblioteca para conexao do com RFID-RC522
+#include <HTTPClient.h>
 /*
 Conexoes pino RFID-RC522
 
@@ -24,6 +25,7 @@ GND -> GND (PRETO)
 
 MFRC522 leitor(SS_PIN, RST_PIN);
 WiFiClient client;
+HTTPClient http;
 
 const String ssid = "JUMENTO BRANCO";
 const String password = "banana3338";
@@ -69,7 +71,7 @@ void VerificarConexao(){
     digitalWrite(ledVermelho,HIGH);
     delay(200);
     digitalWrite(ledVermelho,LOW);
-    delay(200);
+    delay(1000);
 
     if (WiFi.status() == WL_CONNECTED){
       digitalWrite(ledVerde,HIGH);
@@ -119,46 +121,16 @@ void VerificarCard(){
   delay(700);
   digitalWrite(ledVerde, LOW);
  
-
-  //if(EnviarDados(rfid_data)){
-  //  //digitalWrite(ledVerde, HIGH);
-  //  tone(buzzer, 250, 100);
-  //  delay(100);
-  //  tone(buzzer, 740,100);
-  //  delay(1000);
-  //  digitalWrite(ledVerde, LOW);
-  //}
-  //else{
-  //  somAtencao();
-  //}
 }
 
-// Método para envio das informações
+void ValidarAcesso(){
+  String data_json;
 
-//bool EnviarDados(String rfid){
-//  char query[128];
-//  delay(1000);
-//  VerificarConexao();
-//
-//  if(connection.connect(addr_server, port, user, key_mysql, db)){
-//    delay(200);
-//    MySQL_Cursor *cur_mem = new MySQL_Cursor(&connection);
-//    //Salvar
-//    sprintf(query, command, rfid);
-//    // Executa o query
-//    cur_mem -> execute(query);
-//    delete cur_mem;
-//    Serial.println("Informacao salva com exito!!!");
-//    Serial.println("Conexão estabelecida");
-//    connection.close();
-//    return true;
-//  }
-//  else{
-//    Serial.println("Erro ao conecta com banco de dados");
-//    connection.close();
-//    return false;
-//  }
-//}
+  http.begin("https://192.168.1.105/prototipo_esp32/validarAcesso/");
+  http.addHeader("Content-Type","application/json");
+  data_json = ""
+
+}
 
 void somAtencao(){
   digitalWrite(ledAmarelo, HIGH);
