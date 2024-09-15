@@ -30,8 +30,6 @@ HTTPClient http;
 const String ssid = "JUMENTO BRANCO";
 const String password = "banana3338";
 
-IPAddress addr_server(192,168,1,105);
-
 void setup() {
   pinMode(ledVerde, OUTPUT);
   pinMode(ledAmarelo, OUTPUT);
@@ -88,7 +86,7 @@ void VerificarConexao(){
 
 void VerificarCard(){
 
-  String rfid_data;
+  String tag_rfid_value;
   delay(1000);
 
   if (!leitor.PICC_IsNewCardPresent()){
@@ -106,14 +104,15 @@ void VerificarCard(){
   digitalWrite(ledVermelho, LOW);
   Serial.print("\n");
   for (byte i = 0; i < leitor.uid.size; i++){
-    rfid_data += String(leitor.uid.uidByte[i], HEX);
+    tag_rfid_value += String(leitor.uid.uidByte[i], HEX);
 
     if(i != 3){
-      rfid_data += " ";
+      tag_rfid_value += " ";
     }
   }
-  rfid_data.toUpperCase();
-  Serial.print(rfid_data);
+  tag_rfid_value.toUpperCase();
+  Serial.print(tag_rfid_value);
+  ValidarAcesso(tag_rfid_value);
   digitalWrite(ledVerde, HIGH);
   tone(buzzer, 250, 100);
   delay(100);
@@ -123,13 +122,27 @@ void VerificarCard(){
  
 }
 
-void ValidarAcesso(){
+void ValidarAcesso(String tag_rfid_value){
   String data_json;
 
-  http.begin("https://192.168.1.105/prototipo_esp32/validarAcesso/");
+  http.begin("http://192.168.1.105:7000/prototipo_esp32/validarAcesso/");
   http.addHeader("Content-Type","application/json");
-  data_json = ""
+  data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\"}";
+  Serial.println(data_json);
+  
+  int CodhttpResponse = http.POST(data_json);
 
+  if(CodhttpResponse >0){
+    String resultado = http.getString();
+    Serial.println(CodhttpResponse);
+    Serial.println(resultado);
+  }
+  else{
+    Serial.println(CodhttpResponse);
+    Serial.println("Erro durante requisição");
+  }
+
+  http.end();
 }
 
 void somAtencao(){
