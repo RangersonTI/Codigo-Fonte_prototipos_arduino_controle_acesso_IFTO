@@ -3,7 +3,8 @@
 #include <WiFi.h>
 #include <SPI.h>
 #include <MFRC522.h> // Biblioteca para conexao do com RFID-RC522
-#include <HTTPClient.h>
+#include <HTTPClient.h> 
+#include <ArduinoJson.h> // Biblioteca para deserealizaação de JSON para arduino
 /*
 Conexoes pino RFID-RC522
 
@@ -26,6 +27,7 @@ GND -> GND (PRETO)
 MFRC522 leitor(SS_PIN, RST_PIN);
 WiFiClient client;
 HTTPClient http;
+JsonDocument docJson
 
 const String ssid = "JUMENTO BRANCO";
 const String password = "banana3338";
@@ -87,10 +89,11 @@ void VerificarConexao(){
 void VerificarCard(){
 
   String tag_rfid_value;
+  String status_retornado;
   delay(1000);
 
   if (!leitor.PICC_IsNewCardPresent()){
-    Serial.print("\nNenhum Card");
+    //Serial.print("\nNenhum Card");
     return;
   }
 
@@ -112,7 +115,11 @@ void VerificarCard(){
   }
   tag_rfid_value.toUpperCase();
   Serial.print(tag_rfid_value);
-  ValidarAcesso(tag_rfid_value);
+
+  status_retornado = VerificarStatusRetornado(resultado_json);
+  resultado_json = ValidarAcesso(tag_rfid_value);
+  status_retornado = deserializeJson(docJson, resultado_json)
+
   digitalWrite(ledVerde, HIGH);
   tone(buzzer, 250, 100);
   delay(100);
@@ -122,28 +129,30 @@ void VerificarCard(){
  
 }
 
-void ValidarAcesso(String tag_rfid_value){
+String ValidarAcesso(String tag_rfid_value){
   String data_json;
 
-  http.begin("http://192.168.1.105:7000/prototipo_esp32/validarAcesso/");
+  http.begin("http://192.168.1.106:7000/leitor/prototipo_esp32/validarAcesso/");
   http.addHeader("Content-Type","application/json");
-  data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\"}";
+  data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\", \"cod_esp32\": \"control_acess_ifto_permission_true\"}";
   Serial.println(data_json);
   
   int CodhttpResponse = http.POST(data_json);
 
   if(CodhttpResponse >0){
-    String resultado = http.getString();
+    String resultado_json = http.getString();
     Serial.println(CodhttpResponse);
     Serial.println(resultado);
+    return resultado_json;
   }
   else{
-    Serial.println(CodhttpResponse);
-    Serial.println("Erro durante requisição");
+    print(""+CodhttpResponse+" - Erro durante requisição");
   }
 
   http.end();
 }
+
+String VerificarStatusRetornado(String status_json)
 
 void somAtencao(){
   digitalWrite(ledAmarelo, HIGH);
