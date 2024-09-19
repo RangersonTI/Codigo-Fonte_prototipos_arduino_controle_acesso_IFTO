@@ -6,15 +6,22 @@
 #include <HTTPClient.h> 
 #include <ArduinoJson.h> // Biblioteca para deserealizaação de JSON para arduino
 /*
-Conexoes pino RFID-RC522
 
-VSPI RST - RST -> 4 (BRANCO)
-VSPI MOSI - MOSI -> 23 (ROXO)
-VSPI MISO - MISO -> 19 (CINZA)
-VSPI SCK - SCK -> 18 (AZUL)
-VSPI SS - SS (SDA) -> 5 (VERDE)
-VCC -> 3V (VERMELHO
-GND -> GND (PRETO)
+ * BIBLIOTECAS E PLACAS UTILIZADAS
+    * Arduino ESP32 Boards (by arduino v1.8.6) -> placa
+    * MRFC522 (by GithubCommunity v1.4.11) -> biblioteca
+    * ArduinoJson (Benoi Blanchot)
+    * 
+
+ * CONEXOES (PINAGEM) RFID-RC522
+
+   * VSPI RST - RST -> 4 (BRANCO)
+   * VSPI MOSI - MOSI -> 23 (ROXO)
+   * VSPI MISO - MISO -> 19 (CINZA)
+   * VSPI SCK - SCK -> 18 (AZUL)
+   * VSPI SS - SS (SDA) -> 5 (VERDE)
+   * VCC -> 3V (VERMELHO
+   * GND -> GND (PRETO)
 
 */
 #define ledAmarelo 17
@@ -27,7 +34,7 @@ GND -> GND (PRETO)
 MFRC522 leitor(SS_PIN, RST_PIN);
 WiFiClient client;
 HTTPClient http;
-JsonDocument docJson
+JsonDocument docJson;
 
 const String ssid = "JUMENTO BRANCO";
 const String password = "banana3338";
@@ -38,7 +45,7 @@ void setup() {
   pinMode(ledVermelho, OUTPUT);
   Serial.begin(9600);
   SPI.begin();
-  leitor.PCD_Init(); //Inicia o módulo MFRC522
+  leitor.PCD_Init(); //INICIA O MODULO * MFRC522 *
 }
 
 void loop() {
@@ -51,6 +58,8 @@ void loop() {
 
   VerificarCard();
 }
+
+// METODO PARA VERIFICAR E CONECTAR O PROTOTIPO COM A INTERNET
 
 void VerificarConexao(){
   while (WiFi.status() != WL_CONNECTED){
@@ -71,20 +80,23 @@ void VerificarConexao(){
     digitalWrite(ledVermelho,HIGH);
     delay(200);
     digitalWrite(ledVermelho,LOW);
-    delay(1000);
+    delay(200);
+    digitalWrite(ledVermelho,HIGH);
+    delay(200);
+    digitalWrite(ledVermelho,LOW);
+    delay(2000);
 
     if (WiFi.status() == WL_CONNECTED){
       digitalWrite(ledVerde,HIGH);
       delay(1000);
       digitalWrite(ledVerde,LOW);
       delay(50);
-      Serial.println("Conexao estabilizada - ");
-      Serial.print(WiFi.localIP());
+      Serial.println("Conexao estabilizada - "\"\""+WiFi.localIP()+"");
     }
   }
 }
 
-// Método para verificar se há card sendo inserido
+// METODO PARA VERIFICAR SE H CARD SENDO INSERIDO
 
 void VerificarCard(){
 
@@ -99,7 +111,6 @@ void VerificarCard(){
 
   if(!leitor.PICC_ReadCardSerial()){
     Serial.println("Erro de leitura");
-    digitalWrite(ledVermelho, LOW);
     somAtencao();
     return;
   }
@@ -116,9 +127,9 @@ void VerificarCard(){
   tag_rfid_value.toUpperCase();
   Serial.print(tag_rfid_value);
 
-  status_retornado = VerificarStatusRetornado(resultado_json);
   resultado_json = ValidarAcesso(tag_rfid_value);
-  status_retornado = deserializeJson(docJson, resultado_json)
+
+  status_retornado = VerificarStatusRetornado(resultado_json);
 
   digitalWrite(ledVerde, HIGH);
   tone(buzzer, 250, 100);
@@ -129,6 +140,7 @@ void VerificarCard(){
  
 }
 
+// METODO RESPONSAVEL POR COMUNICAR COM SERVIDOR PARA VALIDAR O ACESSO
 String ValidarAcesso(String tag_rfid_value){
   String data_json;
 
@@ -143,22 +155,69 @@ String ValidarAcesso(String tag_rfid_value){
     String resultado_json = http.getString();
     Serial.println(CodhttpResponse);
     Serial.println(resultado);
+    http.end();
     return resultado_json;
   }
   else{
-    print(""+CodhttpResponse+" - Erro durante requisição");
+    http.end();
+    return (""+CodhttpResponse+" - Erro durante requisição");
   }
 
-  http.end();
 }
 
-String VerificarStatusRetornado(String status_json)
+// METODO PARA VERIFICAR O STATUS (cod) RETORNADO PELO SERVIDOR (conversao de JSON)
+
+String VerificarStatusRetornado(String status_json){
+/*
+  Codigos de Status para a Validacao e Cadastro de Acesso
+    
+    save_acess : Historico de acesso salvo... Liberado :)
+    erro_to_save_acess : Erro ao registrar o acesso
+    rfid_unidentified: RFID nao vinculado
+    rfid_not_found : RFID invalido
+*/
+  
+    String status_retornado;
+    deserializeJson(docJson, status_json)
+
+    status_retornado = docJson["Status"];
+
+    if(status_retornado == "save_acess"){
+      Serial.print("Acesso Liberado... :)");
+      acessoLiberado();
+    }
+    else if(status_retornado == "erro_to_save_acess"){
+      Serial.print("Erro ao registrar o acesso.");  // Erro da parte do servidor
+      somAtencao();
+    }
+    else if(status_retornado == "rfid_unidentified"){
+      Serial.print("RFID nao vinculado.");
+      somAtencao();
+    }
+    else if(status_retornado == "rfid_not_found"){
+      Serial.print("RFID invalido.");
+      somAtencao();
+    }
+}
 
 void somAtencao(){
+  digitalWrite(ledVermelho, LOW);
   digitalWrite(ledAmarelo, HIGH);
   tone(buzzer, 150, 100);
   delay(140);
   tone(buzzer, 150, 100);
   delay(140);
   digitalWrite(ledAmarelo, LOW);
+  digitalWrite(ledVermelho, HIGH);
+}
+
+void acessoLiberado(){
+  digitalWrite(ledVermelho, LOW);
+  digitalWrite(ledVerde, HIGH);
+  tone(buzzer, 250, 100);
+  delay(100);
+  tone(buzzer, 740, 100);
+  delay(700);
+  digitalWrite(ledVerde, LOW);
+  digitalWrite(ledVermelho, HIGH);
 }
