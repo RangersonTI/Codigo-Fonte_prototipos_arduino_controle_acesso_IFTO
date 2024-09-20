@@ -91,7 +91,8 @@ void VerificarConexao(){
       delay(1000);
       digitalWrite(ledVerde,LOW);
       delay(50);
-      Serial.println("Conexao estabilizada - "\"\""+WiFi.localIP()+"");
+      Serial.print("Conexao estabilizada - ");
+      Serial.print(WiFi.localIP());
     }
   }
 }
@@ -125,49 +126,44 @@ void VerificarCard(){
     }
   }
   tag_rfid_value.toUpperCase();
-  Serial.print(tag_rfid_value);
+  Serial.println(tag_rfid_value);
 
-  resultado_json = ValidarAcesso(tag_rfid_value);
-
-  status_retornado = VerificarStatusRetornado(resultado_json);
-
-  digitalWrite(ledVerde, HIGH);
-  tone(buzzer, 250, 100);
-  delay(100);
-  tone(buzzer, 740, 100);
-  delay(700);
-  digitalWrite(ledVerde, LOW);
- 
+  String resultado_json = ValidarAcesso(tag_rfid_value);
+  
+  VerificarStatusRetornado(resultado_json); 
 }
 
+
 // METODO RESPONSAVEL POR COMUNICAR COM SERVIDOR PARA VALIDAR O ACESSO
+
 String ValidarAcesso(String tag_rfid_value){
   String data_json;
 
-  http.begin("http://192.168.1.106:7000/leitor/prototipo_esp32/validarAcesso/");
+  http.begin("http://192.168.1.103:7000/leitor/prototipo_esp32/validarAcesso/");
   http.addHeader("Content-Type","application/json");
   data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\", \"cod_esp32\": \"control_acess_ifto_permission_true\"}";
-  Serial.println(data_json);
   
   int CodhttpResponse = http.POST(data_json);
 
   if(CodhttpResponse >0){
     String resultado_json = http.getString();
     Serial.println(CodhttpResponse);
-    Serial.println(resultado);
-    http.end();
+    Serial.println(resultado_json);
+    //http.end();
     return resultado_json;
   }
   else{
-    http.end();
-    return (""+CodhttpResponse+" - Erro durante requisição");
+    //http.end();
+    String erro = "Erro durante requisição - ";
+    erro.concat(CodhttpResponse);
+    return erro;
   }
-
 }
+
 
 // METODO PARA VERIFICAR O STATUS (cod) RETORNADO PELO SERVIDOR (conversao de JSON)
 
-String VerificarStatusRetornado(String status_json){
+void VerificarStatusRetornado(String status_json){
 /*
   Codigos de Status para a Validacao e Cadastro de Acesso
     
@@ -176,12 +172,13 @@ String VerificarStatusRetornado(String status_json){
     rfid_unidentified: RFID nao vinculado
     rfid_not_found : RFID invalido
 */
-  
+    Serial.println("Estrou no metodo Verificar Status Retornado :)");
+
     String status_retornado;
-    deserializeJson(docJson, status_json)
-
+    deserializeJson(docJson, status_json);
+    Serial.println("deserializou :)");
     status_retornado = docJson["Status"];
-
+    Serial.println("Vai pro ifi :)");
     if(status_retornado == "save_acess"){
       Serial.print("Acesso Liberado... :)");
       acessoLiberado();
