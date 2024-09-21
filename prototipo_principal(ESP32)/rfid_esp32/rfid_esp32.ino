@@ -5,13 +5,14 @@
 #include <MFRC522.h> // Biblioteca para conexao do com RFID-RC522
 #include <HTTPClient.h> 
 #include <ArduinoJson.h> // Biblioteca para deserealizaação de JSON para arduino
+#include <LiquidCrystal_I2C.h> // Biblioteca para utilização do LCD
 /*
 
  * BIBLIOTECAS E PLACAS UTILIZADAS
     * Arduino ESP32 Boards (by arduino v1.8.6) -> placa
     * MRFC522 (by GithubCommunity v1.4.11) -> biblioteca
-    * ArduinoJson (Benoi Blanchot)
-    * 
+    * ArduinoJson (Benoi Blanchot v7.1.0) -> biblioteca
+    * LiquidCrystal_I2C (Frank de Brabander v1.1.2) -> biblioteca
 
  * CONEXOES (PINAGEM) RFID-RC522
 
@@ -35,6 +36,7 @@ MFRC522 leitor(SS_PIN, RST_PIN);
 WiFiClient client;
 HTTPClient http;
 JsonDocument docJson;
+LiquidCrystal_I2C lcd(0x27,16,2)
 
 const String ssid = "JUMENTO BRANCO";
 const String password = "banana3338";
@@ -149,11 +151,11 @@ String ValidarAcesso(String tag_rfid_value){
     String resultado_json = http.getString();
     Serial.println(CodhttpResponse);
     Serial.println(resultado_json);
-    //http.end();
+    http.end();
     return resultado_json;
   }
   else{
-    //http.end();
+    http.end();
     String erro = "Erro durante requisição - ";
     erro.concat(CodhttpResponse);
     return erro;
@@ -172,27 +174,24 @@ void VerificarStatusRetornado(String status_json){
     rfid_unidentified: RFID nao vinculado
     rfid_not_found : RFID invalido
 */
-    Serial.println("Estrou no metodo Verificar Status Retornado :)");
 
-    String status_retornado;
     deserializeJson(docJson, status_json);
-    Serial.println("deserializou :)");
-    status_retornado = docJson["Status"];
-    Serial.println("Vai pro ifi :)");
+    String status_retornado = ((docJson["Status"]).as<String>());
+
     if(status_retornado == "save_acess"){
-      Serial.print("Acesso Liberado... :)");
+      Serial.print("\nAcesso Liberado... :)");
       acessoLiberado();
     }
     else if(status_retornado == "erro_to_save_acess"){
-      Serial.print("Erro ao registrar o acesso.");  // Erro da parte do servidor
+      Serial.print("\nErro ao registrar o acesso.");  // Erro da parte do servidor
       somAtencao();
     }
     else if(status_retornado == "rfid_unidentified"){
-      Serial.print("RFID nao vinculado.");
+      Serial.print("\nRFID nao vinculado.");
       somAtencao();
     }
     else if(status_retornado == "rfid_not_found"){
-      Serial.print("RFID invalido.");
+      Serial.print("\nRFID invalido.");
       somAtencao();
     }
 }
@@ -200,21 +199,19 @@ void VerificarStatusRetornado(String status_json){
 void somAtencao(){
   digitalWrite(ledVermelho, LOW);
   digitalWrite(ledAmarelo, HIGH);
-  tone(buzzer, 150, 100);
-  delay(140);
-  tone(buzzer, 150, 100);
-  delay(140);
+  tone(buzzer, 150, 110);
+  delay(150);
+  tone(buzzer, 150, 110);
+  delay(200);
   digitalWrite(ledAmarelo, LOW);
-  digitalWrite(ledVermelho, HIGH);
 }
 
 void acessoLiberado(){
   digitalWrite(ledVermelho, LOW);
   digitalWrite(ledVerde, HIGH);
-  tone(buzzer, 250, 100);
-  delay(100);
-  tone(buzzer, 740, 100);
-  delay(700);
+  tone(buzzer, 250, 120);
+  delay(120);
+  tone(buzzer, 740, 150);
+  delay(720);
   digitalWrite(ledVerde, LOW);
-  digitalWrite(ledVermelho, HIGH);
 }
