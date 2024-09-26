@@ -26,7 +26,7 @@
 
 */
 #define ledAmarelo 17
-#define ledVerde 21
+#define ledVerde 0
 #define ledVermelho 16
 #define buzzer 2
 #define RST_PIN 4
@@ -36,7 +36,7 @@ MFRC522 leitor(SS_PIN, RST_PIN);
 WiFiClient client;
 HTTPClient http;
 JsonDocument docJson;
-LiquidCrystal_I2C lcd(0x27,16,2)
+LiquidCrystal_I2C lcd(0x27,16,2);
 
 const String ssid = "JUMENTO BRANCO";
 const String password = "banana3338";
@@ -48,6 +48,10 @@ void setup() {
   Serial.begin(9600);
   SPI.begin();
   leitor.PCD_Init(); //INICIA O MODULO * MFRC522 *
+  lcd.init();
+  lcd.backlight();
+  lcd.display();
+  lcdMsgBoasVindas();
 }
 
 void loop() {
@@ -86,7 +90,7 @@ void VerificarConexao(){
     digitalWrite(ledVermelho,HIGH);
     delay(200);
     digitalWrite(ledVermelho,LOW);
-    delay(2000);
+    delay(500);
 
     if (WiFi.status() == WL_CONNECTED){
       digitalWrite(ledVerde,HIGH);
@@ -105,7 +109,7 @@ void VerificarCard(){
 
   String tag_rfid_value;
   String status_retornado;
-  delay(1000);
+  delay(700);
 
   if (!leitor.PICC_IsNewCardPresent()){
     //Serial.print("\nNenhum Card");
@@ -141,10 +145,10 @@ void VerificarCard(){
 String ValidarAcesso(String tag_rfid_value){
   String data_json;
 
-  http.begin("http://192.168.1.103:7000/leitor/prototipo_esp32/validarAcesso/");
+  http.begin("http://192.168.1.105:7000/leitor/prototipo_esp32/validarAcesso/");
   http.addHeader("Content-Type","application/json");
   data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\", \"cod_esp32\": \"control_acess_ifto_permission_true\"}";
-  
+
   int CodhttpResponse = http.POST(data_json);
 
   if(CodhttpResponse >0){
@@ -165,7 +169,7 @@ String ValidarAcesso(String tag_rfid_value){
 
 // METODO PARA VERIFICAR O STATUS (cod) RETORNADO PELO SERVIDOR (conversao de JSON)
 
-void VerificarStatusRetornado(String status_json){
+void VerificarStatusRetornado(String status){
 /*
   Codigos de Status para a Validacao e Cadastro de Acesso
     
@@ -174,25 +178,45 @@ void VerificarStatusRetornado(String status_json){
     rfid_unidentified: RFID nao vinculado
     rfid_not_found : RFID invalido
 */
-
-    deserializeJson(docJson, status_json);
+    lcd.clear();
+    deserializeJson(docJson, status);
     String status_retornado = ((docJson["Status"]).as<String>());
 
     if(status_retornado == "save_acess"){
-      Serial.print("\nAcesso Liberado... :)");
+      //Serial.print("\nAcesso Liberado... :)");
+      lcd.print("Acesso Liberado.");
+      lcd.setCursor(0, 1);
+      lcd.print(".. :)");
       acessoLiberado();
+      lcdMsgBoasVindas();
     }
     else if(status_retornado == "erro_to_save_acess"){
-      Serial.print("\nErro ao registrar o acesso.");  // Erro da parte do servidor
+      //Serial.print("\n");  // Erro da parte do servidor
+      lcd.print("Erro ao registra");
+      lcd.setCursor(0, 1);
+      lcd.print("r o acesso.");
       somAtencao();
+      lcdMsgBoasVindas();
     }
     else if(status_retornado == "rfid_unidentified"){
-      Serial.print("\nRFID nao vinculado.");
+      //Serial.print("\nRFID nao vinculado.");
+      lcd.print("RFID nao vincula");
+      lcd.setCursor(0, 1);
+      lcd.print("do.");
       somAtencao();
+      lcdMsgBoasVindas();
     }
     else if(status_retornado == "rfid_not_found"){
-      Serial.print("\nRFID invalido.");
+      //Serial.print("\nRFID invalido.");
+      lcd.print("RFID invalido.");
       somAtencao();
+      lcdMsgBoasVindas();
+    }
+    else{
+      lcd.print(status);
+      Serial.print(status);
+      somAtencao();
+      lcdMsgBoasVindas();
     }
 }
 
@@ -202,7 +226,7 @@ void somAtencao(){
   tone(buzzer, 150, 110);
   delay(150);
   tone(buzzer, 150, 110);
-  delay(200);
+  delay(1000);
   digitalWrite(ledAmarelo, LOW);
 }
 
@@ -212,6 +236,13 @@ void acessoLiberado(){
   tone(buzzer, 250, 120);
   delay(120);
   tone(buzzer, 740, 150);
-  delay(720);
+  delay(1000);
   digitalWrite(ledVerde, LOW);
+}
+
+void lcdMsgBoasVindas(){
+  lcd.clear();
+  lcd.print("Bem-vindo ao IFT");
+  lcd.setCursor(0, 1);
+  lcd.print("O");
 }
