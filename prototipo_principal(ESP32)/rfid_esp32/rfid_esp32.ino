@@ -1,10 +1,11 @@
 // ESP32 ->   Wi-Fi A/B/G/N
 
 #include <WiFi.h>
+#include <time.h>
 #include <SPI.h>
 #include <MFRC522.h> // Biblioteca para conexao do com RFID-RC522
 #include <HTTPClient.h> 
-#include <ArduinoJson.h> // Biblioteca para deserealizaação de JSON para arduino
+#include <ArduinoJson.h> // Biblioteca para deserealização de JSON para arduino
 #include <LiquidCrystal_I2C.h> // Biblioteca para utilização do LCD
 /*
 
@@ -12,7 +13,7 @@
     * Arduino ESP32 Boards (by arduino v1.8.6) -> placa
     * MRFC522 (by GithubCommunity v1.4.11) -> biblioteca
     * ArduinoJson (Benoi Blanchot v7.1.0) -> biblioteca
-    * LiquidCrystal_I2C (Frank de Brabander v1.1.2) -> biblioteca
+    * LiquidCrystal_I2C (Frank de Brabander v1.1.2) -> biblioteca    
 
  * CONEXOES (PINAGEM) RFID-RC522
 
@@ -36,10 +37,12 @@ MFRC522 leitor(SS_PIN, RST_PIN);
 WiFiClient client;
 HTTPClient http;
 JsonDocument docJson;
-LiquidCrystal_I2C lcd(0x27,16,2);
+LiquidCrystal_I2C lcd(0x27,20,4);
 
 const String ssid = "JUMENTO BRANCO";
 const String password = "banana3338";
+long timezone = -3; // BRASIL
+byte daysavetime = 1;
 
 void setup() {
   pinMode(ledVerde, OUTPUT);
@@ -52,10 +55,12 @@ void setup() {
   lcd.backlight();
   lcd.display();
   lcdMsgBoasVindas();
+  configTime(3600 * timezone, daysavetime * 3600, "time.nist.gov", "0.pool.ntp.org", "1.pool.ntp.org");
 }
 
 void loop() {
   digitalWrite(ledVermelho, HIGH);
+  lcdMsgBoasVindas();
 
   if(WiFi.status() != WL_CONNECTED){
     digitalWrite(ledVermelho, LOW);
@@ -192,9 +197,9 @@ void VerificarStatusRetornado(String status){
     }
     else if(status_retornado == "erro_to_save_acess"){
       //Serial.print("\n");  // Erro da parte do servidor
-      lcd.print("Erro ao registra");
+      lcd.print("Erro ao registrar");
       lcd.setCursor(0, 1);
-      lcd.print("r o acesso.");
+      lcd.print("o acesso.");
       somAtencao();
       lcdMsgBoasVindas();
     }
@@ -241,8 +246,46 @@ void acessoLiberado(){
 }
 
 void lcdMsgBoasVindas(){
+  String date = AtualizarData();
+  String hour = AtualizarHora();
+  
   lcd.clear();
-  lcd.print("Bem-vindo ao IFT");
-  lcd.setCursor(0, 1);
-  lcd.print("O");
+  lcd.setCursor(1, 0);
+  lcd.print("Bem-vindo ao IFTO");
+  lcd.setCursor(5, 1);
+  lcd.print(date);
+  lcd.setCursor(8, 2);
+  lcd.print(hour);
+}
+
+String AtualizarData(){
+  
+  struct tm tmstruct ;
+
+  tmstruct.tm_year = 0;
+  getLocalTime(&tmstruct);
+
+  if ((String(tmstruct.tm_mday)).length() == 1){
+    if (String(( tmstruct.tm_mon) + 1).length() == 1){
+      return ("0" + String(tmstruct.tm_mday) + "-0" + String(( tmstruct.tm_mon) + 1) + "-" + String((tmstruct.tm_year) + 1900) );
+    }
+
+    return ("0" + String(tmstruct.tm_mday) + "-" + String(( tmstruct.tm_mon) + 1) + "-" + String((tmstruct.tm_year) + 1900) );
+  }
+  else{
+    return (String(tmstruct.tm_mday) + "-" + String(( tmstruct.tm_mon) + 1) + "-" + String((tmstruct.tm_year) + 1900) );
+  }
+}
+
+String AtualizarHora(){
+  
+  struct tm tmstruct ;
+  getLocalTime(&tmstruct);
+
+  if ((String(tmstruct.tm_min)).length() == 1){
+    return (String(tmstruct.tm_hour) + ":0" + (String(tmstruct.tm_min)));
+  }
+  else{
+    return (String(tmstruct.tm_hour) + ":" + (String(tmstruct.tm_min)));
+  }
 }
