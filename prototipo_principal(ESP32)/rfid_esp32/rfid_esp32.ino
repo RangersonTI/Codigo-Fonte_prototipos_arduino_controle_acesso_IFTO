@@ -33,15 +33,16 @@
 #define RST_PIN 4
 #define SS_PIN 5
 
-MFRC522 leitor(SS_PIN, RST_PIN);
+MFRC522 leitor(SS_PIN, RST_PIN); // INSTANCIA O OBJETO PARA UTILIZAÇÃO DO mfrc522 (leitor do RFID)
 WiFiClient client;
 HTTPClient http;
 JsonDocument docJson;
-LiquidCrystal_I2C lcd(0x27,20,4);
+LiquidCrystal_I2C lcd(0x27,20,4); /* INSTANCIA O OBJETO PARA O USO DO LCD AO ESP32, PASSANDO OS SEGUINTE 
+                                   PARAMETROS DE CONFIGURAÇÃO: endereco do lcd, qtd_linhas e qtd_colunas*/
 
-const String ssid = "JUMENTO BRANCO";
-const String password = "banana3338";
-long timezone = -3; // BRASIL
+const String ssid = "nome_ssid_rede";
+const String password = "senha";
+long timezone = -3; // Fuso horario BMT corresdente ao país (BRASIL)
 byte daysavetime = 1;
 
 void setup() {
@@ -51,9 +52,9 @@ void setup() {
   Serial.begin(9600);
   SPI.begin();
   leitor.PCD_Init(); //INICIA O MODULO * MFRC522 *
-  lcd.init();
-  lcd.backlight();
-  lcd.display();
+  lcd.init(); // INICIA
+  lcd.backlight(); // ACIONA A LUZ DE FUNDO DO LCD
+  lcd.display(); // ACIONA O FUNDO DE TEXTO DO LCD
   lcdMsgBoasVindas();
   configTime(3600 * timezone, daysavetime * 3600, "time.nist.gov", "0.pool.ntp.org", "1.pool.ntp.org");
 }
@@ -150,7 +151,7 @@ void VerificarCard(){
 String ValidarAcesso(String tag_rfid_value){
   String data_json;
 
-  http.begin("http://192.168.1.105:7000/leitor/prototipo_esp32/validarAcesso/");
+  http.begin("http://192.168.1.107:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
   http.addHeader("Content-Type","application/json");
   data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\", \"cod_esp32\": \"control_acess_ifto_permission_true\"}";
 
@@ -188,38 +189,73 @@ void VerificarStatusRetornado(String status){
     String status_retornado = ((docJson["Status"]).as<String>());
 
     if(status_retornado == "save_acess"){
-      //Serial.print("\nAcesso Liberado... :)");
-      lcd.print("Acesso Liberado.");
-      lcd.setCursor(0, 1);
-      lcd.print(".. :)");
+      String date = AtualizarData();
+      String hour = AtualizarHora();
+
+      lcd.setCursor(2, 0);
+      lcd.print(date);
+      lcd.setCursor(14, 0);
+      lcd.print(hour);
+      lcd.setCursor(2, 2);
+      lcd.print("Acesso Liberado...");
+      lcd.setCursor(10, 3);
+      lcd.print(":)");
       acessoLiberado();
       lcdMsgBoasVindas();
     }
     else if(status_retornado == "erro_to_save_acess"){
-      //Serial.print("\n");  // Erro da parte do servidor
-      lcd.print("Erro ao registrar");
-      lcd.setCursor(0, 1);
-      lcd.print("o acesso.");
+      String date = AtualizarData();
+      String hour = AtualizarHora();
+
+      lcd.setCursor(2, 0);
+      lcd.print(date);
+      lcd.setCursor(14, 0);
+      lcd.print(hour);
+      lcd.setCursor(3, 2);
+      lcd.print("Erro ao regis-"); // Erro da parte do servidor
+      lcd.setCursor(3, 2);
+      lcd.print("trar o acesso.");
       somAtencao();
       lcdMsgBoasVindas();
     }
     else if(status_retornado == "rfid_unidentified"){
-      //Serial.print("\nRFID nao vinculado.");
-      lcd.print("RFID nao vincula");
-      lcd.setCursor(0, 1);
-      lcd.print("do.");
+
+      String date = AtualizarData();
+      String hour = AtualizarHora();
+
+      lcd.setCursor(2, 0);
+      lcd.print(date);
+      lcd.setCursor(14, 0);
+      lcd.print(hour);
+      lcd.setCursor(1, 2);
+      lcd.print("RFID nao vinculado.");
       somAtencao();
       lcdMsgBoasVindas();
     }
     else if(status_retornado == "rfid_not_found"){
+      String date = AtualizarData();
+      String hour = AtualizarHora();
+
+      lcd.setCursor(2, 0);
+      lcd.print(date);
+      lcd.setCursor(14, 0);
+      lcd.print(hour);
+      lcd.setCursor(3, 2);
       //Serial.print("\nRFID invalido.");
       lcd.print("RFID invalido.");
       somAtencao();
       lcdMsgBoasVindas();
     }
     else{
+      String date = AtualizarData();
+      String hour = AtualizarHora();
+
+      lcd.setCursor(2, 0);
+      lcd.print(date);
+      lcd.setCursor(14, 0);
+      lcd.print(hour);
+      lcd.setCursor(0, 2);
       lcd.print(status);
-      Serial.print(status);
       somAtencao();
       lcdMsgBoasVindas();
     }
@@ -231,7 +267,7 @@ void somAtencao(){
   tone(buzzer, 150, 110);
   delay(150);
   tone(buzzer, 150, 110);
-  delay(1000);
+  delay(2000);
   digitalWrite(ledAmarelo, LOW);
 }
 
@@ -241,7 +277,7 @@ void acessoLiberado(){
   tone(buzzer, 250, 120);
   delay(120);
   tone(buzzer, 740, 150);
-  delay(1000);
+  delay(2000);
   digitalWrite(ledVerde, LOW);
 }
 
@@ -283,9 +319,9 @@ String AtualizarHora(){
   getLocalTime(&tmstruct);
 
   if ((String(tmstruct.tm_min)).length() == 1){
-    return (String(tmstruct.tm_hour) + ":0" + (String(tmstruct.tm_min)));
+    return (String(tmstruct.tm_hour-1) + ":0" + (String(tmstruct.tm_min)));
   }
   else{
-    return (String(tmstruct.tm_hour) + ":" + (String(tmstruct.tm_min)));
+    return (String(tmstruct.tm_hour-1) + ":" + (String(tmstruct.tm_min)));
   }
 }
