@@ -169,8 +169,7 @@ String ValidarAcesso(String tag_rfid_value){
   }
   else{
     http.end();
-    String erro = "Erro durante requisição - ";
-    erro.concat(CodhttpResponse);
+    String erro = "Erro durante requisição";
     return erro;
   }
 }
