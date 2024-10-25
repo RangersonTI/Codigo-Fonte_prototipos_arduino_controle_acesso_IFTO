@@ -10,10 +10,10 @@
 /*
 
  * BIBLIOTECAS E PLACAS UTILIZADAS
-    * Arduino ESP32 Boards (by arduino v1.8.6) -> placa
-    * MRFC522 (by GithubCommunity v1.4.11) -> biblioteca
+    * esp32 (by Espressif v3.0.5) -> placa
+    * MFRC522 (by GithubCommunity v1.4.11) -> biblioteca
     * ArduinoJson (Benoi Blanchot v7.1.0) -> biblioteca
-    * LiquidCrystal_I2C (Frank de Brabander v1.1.2) -> biblioteca    
+    * LiquidCrystal_I2C (Frank de Brabander v1.1.2) -> biblioteca
 
  * CONEXOES (PINAGEM) RFID-RC522
 
@@ -40,8 +40,8 @@ JsonDocument docJson;
 LiquidCrystal_I2C lcd(0x27,20,4); /* INSTANCIA O OBJETO PARA O USO DO LCD AO ESP32, PASSANDO OS SEGUINTE 
                                    PARAMETROS DE CONFIGURAÇÃO: endereco do lcd, qtd_linhas e qtd_colunas*/
 
-const String ssid = "nome_ssid_rede";
-const String password = "senha";
+const String ssid = "ssid";
+const String password = "password";
 long timezone = -3; // Fuso horario BMT corresdente ao país (BRASIL)
 byte daysavetime = 1;
 
@@ -63,6 +63,9 @@ void loop() {
 
   if(WiFi.status() != WL_CONNECTED){
     digitalWrite(ledVermelho, LOW);
+    lcd.print("Estabelecendo");
+    lcd.setCursor(0, 1);
+    lcd.print("conexao ...");
     VerificarConexao();
     lcdMsgBoasVindas();
   }
@@ -74,7 +77,6 @@ void loop() {
 
 void VerificarConexao(){
   while (WiFi.status() != WL_CONNECTED){
-    Serial.print("Estabilizando conexao");
     WiFi.begin(ssid,password);
     digitalWrite(ledVermelho,HIGH);
     delay(200);
@@ -95,14 +97,16 @@ void VerificarConexao(){
     digitalWrite(ledVermelho,HIGH);
     delay(200);
     digitalWrite(ledVermelho,LOW);
-    delay(500);
+    delay(1500);
 
     if (WiFi.status() == WL_CONNECTED){
       digitalWrite(ledVerde,HIGH);
-      delay(1000);
+      lcd.clear();
+      lcd.print("Conexao");
+      lcd.setCursor(0,1);
+      lcd.print("estabelecida - :)");
+      delay(3000);
       digitalWrite(ledVerde,LOW);
-      delay(50);
-      Serial.print("Conexao estabilizada - ");
       Serial.print(WiFi.localIP());
     }
   }
