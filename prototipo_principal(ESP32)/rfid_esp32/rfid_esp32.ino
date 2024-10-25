@@ -55,17 +55,16 @@ void setup() {
   lcd.init(); // INICIA
   lcd.backlight(); // ACIONA A LUZ DE FUNDO DO LCD
   lcd.display(); // ACIONA O FUNDO DE TEXTO DO LCD
-  lcdMsgBoasVindas();
   configTime(3600 * timezone, daysavetime * 3600, "time.nist.gov", "0.pool.ntp.org", "1.pool.ntp.org");
 }
 
 void loop() {
   digitalWrite(ledVermelho, HIGH);
-  lcdMsgBoasVindas();
 
   if(WiFi.status() != WL_CONNECTED){
     digitalWrite(ledVermelho, LOW);
     VerificarConexao();
+    lcdMsgBoasVindas();
   }
 
   VerificarCard();
@@ -151,7 +150,7 @@ void VerificarCard(){
 String ValidarAcesso(String tag_rfid_value){
   String data_json;
 
-  http.begin("http://192.168.1.107:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
+  http.begin("http://192.168.1.110:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
   http.addHeader("Content-Type","application/json");
   data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\", \"cod_esp32\": \"control_acess_ifto_permission_true\"}";
 
@@ -241,7 +240,6 @@ void VerificarStatusRetornado(String status){
       lcd.setCursor(14, 0);
       lcd.print(hour);
       lcd.setCursor(3, 2);
-      //Serial.print("\nRFID invalido.");
       lcd.print("RFID invalido.");
       somAtencao();
       lcdMsgBoasVindas();

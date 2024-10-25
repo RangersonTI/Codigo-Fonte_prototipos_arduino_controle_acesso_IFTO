@@ -18,7 +18,7 @@ void setup() {
 }
 
 void loop() {
-  int tempo = 600;
+  int tempo = 1000;
 
   if(! leitor.PICC_IsNewCardPresent()){
     digitalWrite(led_vermelho, HIGH);
