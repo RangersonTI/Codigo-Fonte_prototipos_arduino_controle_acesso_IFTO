@@ -40,8 +40,8 @@ JsonDocument docJson;
 LiquidCrystal_I2C lcd(0x27,20,4); /* INSTANCIA O OBJETO PARA O USO DO LCD AO ESP32, PASSANDO OS SEGUINTE 
                                    PARAMETROS DE CONFIGURAÇÃO: endereco do lcd, qtd_linhas e qtd_colunas*/
 
-const String ssid = "ssid";
-const String password = "password";
+const String ssid = "Oculto";
+const String password = "JumentoVerde2023";
 long timezone = -3; // Fuso horario BMT corresdente ao país (BRASIL)
 byte daysavetime = 1;
 
@@ -154,7 +154,7 @@ void VerificarCard(){
 String ValidarAcesso(String tag_rfid_value){
   String data_json;
 
-  http.begin("http://192.168.1.110:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
+  http.begin("http://192.168.43.79:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
   http.addHeader("Content-Type","application/json");
   data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\", \"cod_esp32\": \"control_acess_ifto_permission_true\"}";
 
@@ -169,7 +169,7 @@ String ValidarAcesso(String tag_rfid_value){
   }
   else{
     http.end();
-    String erro = "Erro durante requisição";
+    String erro = "request_error";
     return erro;
   }
 }
@@ -255,8 +255,10 @@ void VerificarStatusRetornado(String status){
       lcd.print(date);
       lcd.setCursor(14, 0);
       lcd.print(hour);
-      lcd.setCursor(0, 2);
-      lcd.print(status);
+      lcd.setCursor(3, 2);
+      lcd.print("Erro durante a");
+      lcd.setCursor(5, 3);
+      lcd.print("requisicao");
       somAtencao();
       lcdMsgBoasVindas();
     }
@@ -315,7 +317,7 @@ String AtualizarData(){
 }
 
 String AtualizarHora(){
-  
+
   struct tm tmstruct ;
   getLocalTime(&tmstruct);
 
