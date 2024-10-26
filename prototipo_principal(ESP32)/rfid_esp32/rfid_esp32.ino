@@ -126,8 +126,20 @@ void VerificarCard(){
   }
 
   if(!leitor.PICC_ReadCardSerial()){
-    Serial.println("Erro de leitura");
-    somAtencao();
+    String date = AtualizarData();
+    String hour = AtualizarHora();
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print(date);
+      lcd.setCursor(14, 0);
+      lcd.print(hour);
+      lcd.setCursor(1, 2);
+      lcd.print("Erro ao ler RFID...");
+      lcd.setCursor(9, 3);
+      lcd.print(":(");
+      somAtencao();
+      lcdMsgBoasVindas();
+    
     return;
   }
 
@@ -200,7 +212,7 @@ void VerificarStatusRetornado(String status){
       lcd.print(hour);
       lcd.setCursor(2, 2);
       lcd.print("Acesso Liberado...");
-      lcd.setCursor(10, 3);
+      lcd.setCursor(9, 3);
       lcd.print(":)");
       acessoLiberado();
       lcdMsgBoasVindas();
