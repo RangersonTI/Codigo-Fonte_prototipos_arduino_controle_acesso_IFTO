@@ -52,7 +52,7 @@ void setup() {
   Serial.begin(9600);
   SPI.begin();
   leitor.PCD_Init(); //INICIA O MODULO * MFRC522 *
-  lcd.init(); // INICIA
+  lcd.init(); // INICIA O MODULO * LCD *
   lcd.backlight(); // ACIONA A LUZ DE FUNDO DO LCD
   lcd.display(); // ACIONA O FUNDO DE TEXTO DO LCD
   configTime(3600 * timezone, daysavetime * 3600, "time.nist.gov", "0.pool.ntp.org", "1.pool.ntp.org");
@@ -67,8 +67,8 @@ void loop() {
     lcd.setCursor(0, 1);
     lcd.print("conexao ...");
     VerificarConexao();
-    lcdMsgBoasVindas();
   }
+    lcdMsgBoasVindas();
 
   VerificarCard();
 }
@@ -166,7 +166,7 @@ void VerificarCard(){
 String ValidarAcesso(String tag_rfid_value){
   String data_json;
 
-  http.begin("http://192.168.1.106:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
+  http.begin("http://192.168.1.100:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
   http.addHeader("Content-Type","application/json");
   data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\", \"cod_esp32\": \"control_acess_ifto_permission_true\"}";
 
