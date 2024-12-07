@@ -166,9 +166,9 @@ void VerificarCard(){
 String ValidarAcesso(String tag_rfid_value){
   String data_json;
 
-  http.begin("http://192.168.1.100:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
+  http.begin("http://192.168.1.111:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
   http.addHeader("Content-Type","application/json");
-  data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\", \"cod_esp32\": \"control_acess_ifto_permission_true\"}";
+  data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\", \"cod_esp32\": \"3FFB4E290515F69B245D02B36DDBCF186C52A1399D3FA0B4F4B97D386D009FFAE93CDD0A68570CEADE64C6C9E36EA958C23A568A356A18EDDC7084E67F7A140B\"}";
 
   int CodhttpResponse = http.POST(data_json);
 
