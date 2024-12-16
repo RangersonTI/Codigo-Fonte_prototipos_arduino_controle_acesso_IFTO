@@ -40,8 +40,10 @@ JsonDocument docJson;
 LiquidCrystal_I2C lcd(0x27,20,4); /* INSTANCIA O OBJETO PARA O USO DO LCD AO ESP32, PASSANDO OS SEGUINTE 
                                    PARAMETROS DE CONFIGURAÇÃO: endereco do lcd, qtd_linhas e qtd_colunas*/
 
-const String ssid = "JUMENTO BRANCO";
-const String password = "banana3338";
+//const String ssid = "JUMENTO BRANCO";
+//const String password = "banana3338";
+const String ssid = "Oculto";
+const String password = "JumentoVerde2023";
 long timezone = -3; // Fuso horario BMT corresdente ao país (BRASIL)
 byte daysavetime = 1;
 
@@ -166,7 +168,7 @@ void VerificarCard(){
 String ValidarAcesso(String tag_rfid_value){
   String data_json;
 
-  http.begin("http://192.168.1.111:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
+  http.begin("http://192.168.43.79:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
   http.addHeader("Content-Type","application/json");
   data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\", \"cod_esp32\": \"3FFB4E290515F69B245D02B36DDBCF186C52A1399D3FA0B4F4B97D386D009FFAE93CDD0A68570CEADE64C6C9E36EA958C23A568A356A18EDDC7084E67F7A140B\"}";
 
@@ -334,9 +336,9 @@ String AtualizarHora(){
   getLocalTime(&tmstruct);
 
   if ((String(tmstruct.tm_min)).length() == 1){
-    return (String(tmstruct.tm_hour-1) + ":0" + (String(tmstruct.tm_min)));
+    return (String(tmstruct.tm_hour) + ":0" + (String(tmstruct.tm_min)));
   }
   else{
-    return (String(tmstruct.tm_hour-1) + ":" + (String(tmstruct.tm_min)));
+    return (String(tmstruct.tm_hour) + ":" + (String(tmstruct.tm_min)));
   }
 }
