@@ -1,4 +1,4 @@
-// ESP32 ->   Wi-Fi A/B/G/N 2.4
+﻿// ESP32 ->   Wi-Fi A/B/G/N 2.4
 
 #include <WiFi.h>
 #include <time.h>
@@ -40,10 +40,8 @@ JsonDocument docJson;
 LiquidCrystal_I2C lcd(0x27,20,4); /* INSTANCIA O OBJETO PARA O USO DO LCD AO ESP32, PASSANDO OS SEGUINTE 
                                    PARAMETROS DE CONFIGURAÇÃO: endereco do lcd, qtd_linhas e qtd_colunas*/
 
-//const String ssid = "JUMENTO BRANCO";
-//const String password = "banana3338";
-const String ssid = "Oculto";
-const String password = "JumentoVerde2023";
+const String ssid = "*";
+const String password = "*";
 long timezone = -3; // Fuso horario BMT corresdente ao país (BRASIL)
 byte daysavetime = 1;
 
@@ -152,7 +150,7 @@ void VerificarCard(){
 
     if(i != 3){
       tag_rfid_value += " ";
-    }
+    }               
   }
   tag_rfid_value.toUpperCase();
   Serial.println(tag_rfid_value);
@@ -168,7 +166,7 @@ void VerificarCard(){
 String ValidarAcesso(String tag_rfid_value){
   String data_json;
 
-  http.begin("http://192.168.43.79:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
+  http.begin("http://192.168.54.217:7000/leitor/prototipo_esp32/validarAcesso/"); // Aqui deverá ser alterado para o ip/dns de produção da aplicação
   http.addHeader("Content-Type","application/json");
   data_json = "{\"tag_rfid_value\": \""+tag_rfid_value+"\", \"cod_esp32\": \"3FFB4E290515F69B245D02B36DDBCF186C52A1399D3FA0B4F4B97D386D009FFAE93CDD0A68570CEADE64C6C9E36EA958C23A568A356A18EDDC7084E67F7A140B\"}";
 
